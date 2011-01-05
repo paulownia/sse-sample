@@ -3,36 +3,51 @@ http.createServer(handler).listen(8124);
 
 console.log("Started Server on port 8124");
 
-var counter = 0;
+var events = require("events");
+var emitter = new events.EventEmitter();
+
+var id = 0;
+var data = 'a';
+setInterval(function() {
+	var chars = "abcdefghijklmnopqrstuvwxyz";
+	var pos = Math.floor(Math.random() * 100); 
+	if (pos < chars.length) {
+		id++;
+		data = chars.charAt(pos);
+
+		console.log("emit event, id=" + id + " data=" + data);
+		emitter.emit("genNewChar", id, data);
+	}
+}, 2000);
+
+
 
 function handler(req, res) {
-	var url = require("url").parse(req.url);
-	console.log(url);
+	if (req.headers["accept"] && req.headers["accept"] == "text/event-stream") {
 
-	switch (url.pathname) {
-		case "/":
-			var fs = require("fs");
-			var page = fs.readFileSync("index.html");
-			res.writeHead(200, {"Content-type": "text/html; charset=utf-8"});
-			res.write(page);
-			res.end();
-			break;
-
-		case "/count":
+		function response(id, data) {
 			res.writeHead(200, {
-					"Content-type": "text/event-stream"
+				"Content-type": "text/event-stream",
+				"Last-Event-ID": id
 			});
-			setTimeout(function() {	
-				res.write("data:" + counter++);
-				res.end();
-			}, (Math.random() * 9 + 1) * 1000);
-			break;
+			res.write("id:" + id + "\n");
+			res.write("data:" + data + "\n");
+			res.write("retry: 1000");
+			res.end()
+		}
 
-		default:
-			res.writeHead(404, {"Content-type": "text/plain"});
-			res.write("Not Found");
-			res.end();
-			break;
+		if (!req.headers["last-event-id"] || req.headers["last-event-id"] != id) {
+			response(id, data);	
+		}
+		emitter.on("genNewChar", response);
+
+	} else {
+		
+		var fs = require("fs");
+		var page = fs.readFileSync("index.html");
+		res.writeHead(200, {"Content-type": "text/html; charset=utf-8"});
+		res.write(page);
+		res.end();
 	}
 }
 

@@ -6,7 +6,9 @@
 var source = new EventSource("/count");
 
 source.onmessage = function(event) {
-  document.getElementById("msg").textContent = event.data;
+  var msg = document.getElementById("msg");
+  msg.textContent = msg.textContent + event.data;
+
 }
 
 </script>
