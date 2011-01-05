@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Server Sent Events</title>
+<script>
+var source = new EventSource("/count");
+
+source.onmessage = function(event) {
+  document.getElementById("msg").textContent = event.data;
+}
+
+</script>
+</head>
+<body>
+<pre id="msg"></pre>
+</body>
+</html>
