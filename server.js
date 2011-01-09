@@ -20,7 +20,12 @@ function handler(req, res) {
 			res.write("id:" + id + "\n");
 			res.write("data:" + data + "\n");
 			res.write("retry: 1000");
-			res.end()
+			res.end();
+			finalize();
+		}
+		
+		function finalize() {
+			generator.removeListener("generated", response);
 		}
 
 		if (!req.headers["last-event-id"] || req.headers["last-event-id"] != generator.id) {
