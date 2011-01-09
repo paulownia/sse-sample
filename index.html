@@ -2,18 +2,34 @@
 <html>
 <head>
 <title>Server Sent Events</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 <script>
-var source = new EventSource("/count");
-
-source.onmessage = function(event) {
-  var msg = document.getElementById("msg");
-  msg.textContent = msg.textContent + event.data;
-
-}
-
+$(function() {
+  var source = new EventSource("/count");
+  var $msg = $("#msg");
+  var $chr = $("#chr");
+  source.onmessage = function(event) {
+    $chr.text(event.data);
+    var t = $msg.text() + event.data;
+    if ("node.js".indexOf(t) == 0) {
+      $msg.text(t);
+      if (t == "node.js") {
+        source.close();
+        $msg.css("color","red");
+      }
+    }
+  }
+});
 </script>
+<style>
+#msg {
+  font-family: Zapfino;
+  font-size: 400%;
+}
+</style>
 </head>
 <body>
-<pre id="msg"></pre>
+<p>Sent data from the server: &quot;<span id="chr"></span>&quot;</p>
+<p id="msg"></p>
 </body>
 </html>
