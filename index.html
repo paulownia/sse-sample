@@ -6,16 +6,26 @@
 <script>
 $(function() {
   var source = new EventSource("/count");
-  var $msg = $("#msg");
+  
   var $chr = $("#chr");
+  var $str = $("#msg span");
+
+  var data = new Array(7);
+  for (var i = 0; i < data.length; i++) { data[i] = 1 }
+  var count = 0;
+  
   source.onmessage = function(event) {
     $chr.text(event.data);
-    var t = $msg.text() + event.data;
-    if ("node.js".indexOf(t) == 0) {
-      $msg.text(t);
-      if (t == "node.js") {
+    var pos = "node.js".indexOf(event.data);
+    if (pos > -1 && data[pos] == 1) {
+      $str.eq(pos).css("color", "red");
+      count += data[pos];
+      data[pos] = 0;
+   
+      if (count == 7) {
         source.close();
-        $msg.css("color","red");
+        $("#msg").css("opacity", 0);
+        $("#msg").animate({ opacity: 1 }, 1500)
       }
     }
   }
@@ -30,6 +40,8 @@ $(function() {
 </head>
 <body>
 <p>Sent data from the server: &quot;<span id="chr"></span>&quot;</p>
-<p id="msg"></p>
+<p id="msg">
+  <span>n</span><span>o</span><span>d</span><span>e</span><span>.</span><span>j</span><span>s</span>
+</p>
 </body>
 </html>
