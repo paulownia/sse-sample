@@ -13,24 +13,21 @@ function handler(req, res) {
 	if (req.headers["accept"] && req.headers["accept"] == "text/event-stream") {
 
 		function response(id, data) {
+			generator.removeListener("generated", arguments.callee);
+			
 			res.writeHead(200, {
 				"Content-type": "text/event-stream",
-				"Last-Event-ID": id
 			});
 			res.write("id:" + id + "\n");
 			res.write("data:" + data + "\n");
 			res.write("retry: 1000");
 			res.end();
-			finalize();
 		}
 		
-		function finalize() {
-			generator.removeListener("generated", response);
-		}
-
 		if (!req.headers["last-event-id"] || req.headers["last-event-id"] != generator.id) {
 			response(generator.id, generator.data);	
 		}
+
 		generator.on("generated", response);
 
 	} else {
